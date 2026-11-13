@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LedgerFlow — Subscription Billing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430;
+    --ink-light:#2E3A4B;
+    --paper:#F7F5F0;
+    --paper-dim:#EFEBE2;
+    --line:#DAD4C6;
+    --gold:#B8862E;
+    --gold-dim:#E8D9B8;
+    --sage:#4C7A5C;
+    --sage-dim:#DCE9DF;
+    --rust:#B0472F;
+    --rust-dim:#F1DAD3;
+    --ink-soft:#6B7280;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    display:flex;
+    min-height:100vh;
+  }
+
+  /* Sidebar */
+  .sidebar{
+    width:230px;
+    background: var(--ink);
+    color: var(--paper);
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    padding: 28px 0;
+  }
+  .brand{
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight:600;
+    padding: 0 24px 28px 24px;
+    border-bottom: 1px solid rgba(247,245,240,0.12);
+    margin-bottom: 20px;
+    letter-spacing: 0.2px;
+  }
+  .brand span{ color: var(--gold); }
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 12px 24px;
+    font-size: 14px;
+    color: rgba(247,245,240,0.65);
+    cursor:pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-item:hover{ background: rgba(247,245,240,0.05); color: var(--paper); }
+  .nav-item.active{
+    background: rgba(184,134,46,0.12);
+    border-left-color: var(--gold);
+    color: var(--paper);
+  }
+  .nav-icon{ width:16px; text-align:center; opacity:0.85; }
+  .sidebar-foot{
+    margin-top:auto;
+    padding: 16px 24px 0 24px;
+    font-size:12px;
+    color: rgba(247,245,240,0.4);
+    border-top: 1px solid rgba(247,245,240,0.1);
+  }
+
+  /* Main */
+  .main{ flex:1; padding: 34px 44px; max-width: 1180px; }
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom: 30px;
+  }
+  .topbar h1{
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 600;
+  }
+  .topbar .sub{ color: var(--ink-soft); font-size: 14px; margin-top:4px; }
+  .period-toggle{
+    display:flex;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow:hidden;
+    font-size:13px;
+  }
+  .period-toggle span{
+    padding: 7px 14px;
+    cursor:pointer;
+    color: var(--ink-soft);
+  }
+  .period-toggle span.active{ background: var(--ink); color: var(--paper); }
+
+  /* Stat strip */
+  .stats{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 34px;
+  }
+  .stat{
+    padding: 20px 22px;
+    border-right: 1px solid var(--line);
+  }
+  .stat:last-child{ border-right:none; }
+  .stat .label{ font-size:12px; color: var(--ink-soft); text-transform: none; margin-bottom:8px; }
+  .stat .value{ font-family: var(--serif); font-size:30px; font-weight:600; line-height:1; }
+  .stat .delta{ font-size:12px; margin-top:8px; }
+  .delta.up{ color: var(--sage); }
+  .delta.down{ color: var(--rust); }
+
+  section{ margin-bottom: 36px; }
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  .section-head h2{
+    font-family: var(--serif);
+    font-size:18px;
+    font-weight:600;
+  }
+  .link-action{ font-size:13px; color: var(--gold); cursor:pointer; text-decoration:none; }
+
+  table{ width:100%; border-collapse: collapse; font-size:14px; }
+  thead th{
+    text-align:left;
+    font-weight:500;
+    font-size:12px;
+    color: var(--ink-soft);
+    padding: 0 14px 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td{
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align:middle;
+  }
+  tbody tr:hover{ background: var(--paper-dim); }
+  .cust{ font-weight:600; }
+  .cust-email{ font-size:12px; color:var(--ink-soft); font-weight:400; margin-top:2px;}
+
+  .badge{
+    display:inline-block;
+    font-size:12px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-weight:500;
+  }
+  .badge.active{ background: var(--sage-dim); color: var(--sage); }
+  .badge.overdue{ background: var(--rust-dim); color: var(--rust); }
+  .badge.trial{ background: var(--gold-dim); color: var(--gold); }
+  .badge.paused{ background: #E5E2D9; color: var(--ink-soft); }
+
+  .amount{ font-family: var(--serif); font-weight:600; }
+
+  /* Plans */
+  .plans{ display:grid; grid-template-columns: repeat(3,1fr); gap:0; border: 1px solid var(--line); }
+  .plan{ padding: 26px; border-right:1px solid var(--line); position:relative; }
+  .plan:last-child{ border-right:none; }
+  .plan.featured{ background: var(--ink); color: var(--paper); }
+  .plan .tag{ font-size:12px; color: var(--ink-soft); margin-bottom:6px; }
+  .plan.featured .tag{ color: var(--gold-dim); }
+  .plan h3{ font-family: var(--serif); font-size:20px; margin-bottom: 14px; }
+  .plan .price{ font-family: var(--serif); font-size:34px; font-weight:600; }
+  .plan .price small{ font-family: var(--sans); font-size:13px; font-weight:400; color: var(--ink-soft); }
+  .plan.featured .price small{ color: rgba(247,245,240,0.55); }
+  .plan ul{ list-style:none; margin: 18px 0 22px 0; font-size:13px; }
+  .plan li{ padding: 6px 0; border-top: 1px solid var(--line); color: var(--ink-soft); }
+  .plan.featured li{ border-top: 1px solid rgba(247,245,240,0.15); color: rgba(247,245,240,0.75); }
+  .plan .subs-count{ font-size:12px; color: var(--ink-soft); }
+  .plan.featured .subs-count{ color: rgba(247,245,240,0.5); }
+
+  .invoice-num{ font-family: var(--serif); font-weight: 600; }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="brand">Ledger<span>Flow</span></div>
+    <div class="nav-item active"><span class="nav-icon">▤</span> Dashboard</div>
+    <div class="nav-item"><span class="nav-icon">◐</span> Subscribers</div>
+    <div class="nav-item"><span class="nav-icon">◫</span> Plans</div>
+    <div class="nav-item"><span class="nav-icon">▧</span> Invoices</div>
+    <div class="nav-item"><span class="nav-icon">✎</span> Coupons</div>
+    <div class="nav-item"><span class="nav-icon">⚙</span> Settings</div>
+    <div class="sidebar-foot">PHP 8.2 · MySQL 8<br>build v1.4.0</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1>Billing overview</h1>
+        <div class="sub">Monday, 7 September 2026</div>
+      </div>
+      <div class="period-toggle">
+        <span>7d</span><span class="active">30d</span><span>90d</span>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Monthly recurring revenue</div>
+        <div class="value">₹4,82,300</div>
+        <div class="delta up">▲ 6.2% vs last month</div>
+      </div>
+      <div class="stat">
+        <div class="label">Active subscriptions</div>
+        <div class="value">1,248</div>
+        <div class="delta up">▲ 34 new</div>
+      </div>
+      <div class="stat">
+        <div class="label">Past due</div>
+        <div class="value">37</div>
+        <div class="delta down">▲ 5 since Friday</div>
+      </div>
+      <div class="stat">
+        <div class="label">Churn rate</div>
+        <div class="value">2.1%</div>
+        <div class="delta up">▼ 0.4pt improved</div>
+      </div>
+    </div>
+
+    <section>
+      <div class="section-head">
+        <h2>Subscription plans</h2>
+        <a class="link-action">+ New plan</a>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <div class="tag">STARTER</div>
+          <h3>Basic</h3>
+          <div class="price">₹499<small> / month</small></div>
+          <ul>
+            <li>1 workspace</li>
+            <li>5 team members</li>
+            <li>Email support</li>
+          </ul>
+          <div class="subs-count">412 active subscribers</div>
+        </div>
+        <div class="plan featured">
+          <div class="tag">MOST POPULAR</div>
+          <h3>Professional</h3>
+          <div class="price">₹1,499<small> / month</small></div>
+          <ul>
+            <li>5 workspaces</li>
+            <li>Unlimited members</li>
+            <li>Priority support</li>
+            <li>Usage analytics</li>
+          </ul>
+          <div class="subs-count">691 active subscribers</div>
+        </div>
+        <div class="plan">
+          <div class="tag">ENTERPRISE</div>
+          <h3>Business</h3>
+          <div class="price">₹3,999<small> / month</small></div>
+          <ul>
+            <li>Unlimited workspaces</li>
+            <li>SSO & audit logs</li>
+            <li>Dedicated manager</li>
+          </ul>
+          <div class="subs-count">145 active subscribers</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Recent subscribers</h2>
+        <a class="link-action">View all →</a>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Customer</th><th>Plan</th><th>Status</th><th>Next billing</th><th>Amount</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="cust">Rohit Malhotra</div><div class="cust-email">rohit.m@nimbustech.in</div></td>
+            <td>Professional</td>
+            <td><span class="badge active">Active</span></td>
+            <td>14 Sep 2026</td>
+            <td class="amount">₹1,499</td>
+          </tr>
+          <tr>
+            <td><div class="cust">Priya Deshmukh</div><div class="cust-email">priya@brightloop.co</div></td>
+            <td>Business</td>
+            <td><span class="badge active">Active</span></td>
+            <td>19 Sep 2026</td>
+            <td class="amount">₹3,999</td>
+          </tr>
+          <tr>
+            <td><div class="cust">Arjun Sethi</div><div class="cust-email">arjun.sethi@vector.dev</div></td>
+            <td>Basic</td>
+            <td><span class="badge overdue">Past due</span></td>
+            <td>2 Sep 2026</td>
+            <td class="amount">₹499</td>
+          </tr>
+          <tr>
+            <td><div class="cust">Neha Kapoor</div><div class="cust-email">neha@kapoorstudio.com</div></td>
+            <td>Professional</td>
+            <td><span class="badge trial">Trial</span></td>
+            <td>21 Sep 2026</td>
+            <td class="amount">₹0</td>
+          </tr>
+          <tr>
+            <td><div class="cust">Sameer Yadav</div><div class="cust-email">sameer.y@outpostlabs.io</div></td>
+            <td>Basic</td>
+            <td><span class="badge paused">Paused</span></td>
+            <td>—</td>
+            <td class="amount">₹499</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Latest invoices</h2>
+        <a class="link-action">View all →</a>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Invoice</th><th>Customer</th><th>Issued</th><th>Status</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="invoice-num">INV-10482</td>
+            <td>Rohit Malhotra</td>
+            <td>7 Sep 2026</td>
+            <td><span class="badge active">Paid</span></td>
+            <td class="amount">₹1,499</td>
+          </tr>
+          <tr>
+            <td class="invoice-num">INV-10481</td>
+            <td>Priya Deshmukh</td>
+            <td>6 Sep 2026</td>
+            <td><span class="badge active">Paid</span></td>
+            <td class="amount">₹3,999</td>
+          </tr>
+          <tr>
+            <td class="invoice-num">INV-10480</td>
+            <td>Arjun Sethi</td>
+            <td>2 Sep 2026</td>
+            <td><span class="badge overdue">Unpaid</span></td>
+            <td class="amount">₹499</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+</body>
+</html>
