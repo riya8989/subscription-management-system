@@ -8,7 +8,7 @@ PHP and MySQL web application for managing user subscriptions.
 1. Install XAMPP and start Apache and MySQL.
 2. Copy this project folder into xampp/htdocs.
 3. Open phpMyAdmin, create a database, and import the .sql file.
-4. Open http://localhost/subscription-management-system in your browser.
+4. Open http://localhost/bill/ in your browser.
 
 ## Features
 - User registration and login
